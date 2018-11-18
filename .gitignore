@@ -1,0 +1,3 @@
+/deeplab/datasets/tt100k/
+/deeplab/datasets/pascal_voc_seg/
+*.pyc
