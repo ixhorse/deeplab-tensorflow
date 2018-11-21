@@ -59,6 +59,7 @@ then
         --initialize_last_layer=false \
         --train_logdir="${TRAIN_LOGDIR}" \
         --dataset_dir="${TT100K_DATASET}" \
+        --base_learning_rate=0.0001 \
         --tf_initial_checkpoint="${INIT_FOLDER}/deeplabv3_pascal_trainval/model.ckpt"
 elif [ $FLAG == 2 ] 
 then 
@@ -106,7 +107,7 @@ then
         --vis_logdir="${VIS_LOGDIR}" \
         --dataset_dir="${TT100K_DATASET}" \
         --max_number_of_iterations=1 \
-        --save_raw_predictions=true
+        --save_raw_predictions=false
 elif [ $FLAG == 4 ] 
 then
     # Export the trained checkpoint.

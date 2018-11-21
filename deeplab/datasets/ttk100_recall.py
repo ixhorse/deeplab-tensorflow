@@ -11,7 +11,8 @@ from tqdm import tqdm
 import pdb
 
 
-datadir = '/home/mcc/data/TT100K'
+user_home = os.path.expanduser('~')
+datadir = os.path.join(user_home, 'data/TT100K')
 label_path = datadir + '/TT100K_voc/SegmentationClass'
 annos_path = datadir + '/data/annotations.json'
 image_path = datadir + '/TT100K_voc/JPEGImages'
@@ -45,7 +46,7 @@ def overlap(box1, box2):
         return False
     u_area = u_w * u_h
     box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
-    if u_area / box1_area < 0.5:
+    if u_area / box1_area < 0.75:
         return False
     else:
         return True
@@ -109,9 +110,11 @@ def vis_undetected_image(img_list):
 def main():
     annos = json.loads(open(annos_path).read())
 
-    total_object = 0
-    detect_object = 0
+    label_object = []
+    detect_object = []
+    mask_object = []
     undetected_img = []
+    pixel_num = []
     for raw_file in tqdm(glob(mask_path + '/*.png')):
         img_name = os.path.basename(raw_file)
         imgid = os.path.splitext(img_name)[0]
@@ -119,8 +122,8 @@ def main():
         image_file = os.path.join(image_path, imgid + '.jpg')
         
         mask_img = cv.imread(raw_file, cv.IMREAD_GRAYSCALE)
-        # label_img = cv.imread(label_file, cv.IMREAD_GRAYSCALE)
-        # original_img = cv.imread(image_file)
+        pixel_num.append(np.sum(mask_img))
+
         mask_size = mask_img.shape[:2]
 
         label_box = get_box(annos, imgid)
@@ -135,14 +138,18 @@ def main():
                 if overlap(box1, box2):
                     count += 1
                     break
-        total_object += len(label_box)
-        detect_object += count
+        label_object.append(len(label_box))
+        detect_object.append(count)
+        mask_object.append(len(mask_box))
         if len(label_box) != count:
             undetected_img.append(imgid)
-    print('recall: %f' % (detect_object / total_object))
-    print(undetected_img)
+
+    print('recall: %f' % (np.sum(detect_object) / np.sum(label_object)))
+    print('cost avg: %f, std: %f' % (np.mean(pixel_num), np.std(pixel_num)))
+    print('detect box avg: %f, std %d' %(np.mean(mask_object), np.std(mask_object)))
+    # print(undetected_img)
 
 if __name__ == '__main__':
     img_list = ['1883', '75227', '38108', '29501', '48010', '15366', '91027', '31998', '25647', '29849', '77147', '82748', '78591', '25503', '75494', '36342', '13802', '1774', '66010', '83208', '51875', '27645', '74380', '12186', '37304', '25333', '50648', '40008', '28988', '44609', '18935', '9662', '36686', '68353', '75883', '41462', '2706', '26042', '35419', '14724', '6599', '29618', '51142', '80064', '75881', '77156', '65419', '37771', '66589', '4902', '1792', '16489', '81686', '89739', '70814', '58194', '42891', '88783', '12467', '40363', '76771', '36393', '5998', '90375', '97043', '90326', '2736', '22779', '36302', '79023', '79595', '77713', '72001', '84082', '84626', '94686', '38711', '69700', '66004', '94893', '94910', '94297', '7807', '70386', '94598', '71249', '70437', '20942', '41372', '40935', '92518', '4232', '39610', '97625', '97290', '96726', '58281', '80925', '62728', '38273', '41321', '67372', '68066', '5773', '25421', '76568', '56576', '58719', '45154', '94307', '31641', '47787', '12339', '73250', '46346', '62025', '59076', '2', '51435', '38199', '13931', '8783', '29297', '86217', '29714', '20600', '5051', '83167', '27986', '23320', '39338', '86066', '52335', '12883', '27663', '96461', '8099', '96069', '34782', '64497', '74315', '64195', '63555', '15332', '74518', '27009', '62713', '53500', '92707', '26234', '74668', '31643', '66117']
-    vis_undetected_image(img_list)
-    # main()
+    # vis_undetected_image(img_list)
+    main()

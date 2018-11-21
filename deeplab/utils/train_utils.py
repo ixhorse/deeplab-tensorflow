@@ -24,8 +24,62 @@ from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import nn
+from tensorflow.python.ops.losses import losses_impl
 
 slim = tf.contrib.slim
+
+
+def focal_loss(labels, logits, alpha=0.25, gamma=2):
+    """
+    focal loss for multi-classification
+    FL(p_t)=-alpha(1-p_t)^{gamma}ln(p_t)
+    Notice: logits is probability after softmax
+    gradient is d(Fl)/d(p_t) not d(Fl)/d(x) as described in paper
+    d(Fl)/d(p_t) * [p_t(1-p_t)] = d(Fl)/d(x)
+    Lin, T.-Y., Goyal, P., Girshick, R., He, K., & Dollár, P. (2017).
+    Focal Loss for Dense Object Detection, 130(4), 485–491.
+    https://doi.org/10.1016/j.ajodo.2005.02.022
+    :param labels: one hot labels, shape of [batch_size, num_cls]
+    :param logits: model's output, shape of [batch_size, num_cls]
+    :param alpha:
+    :param gamma:
+    :return: shape of [batch_size]
+    """
+    epsilon = 1.e-9
+    labels = tf.convert_to_tensor(labels, tf.float32)
+    logits = tf.convert_to_tensor(logits, tf.float32)
+    softmax_out = tf.nn.softmax(logits)
+
+    # alpha_weight = tf.constant([1, alpha], dtype=tf.float32)
+    ce = tf.multiply(labels, -tf.log(softmax_out))
+    weight = tf.pow(tf.subtract(1., softmax_out), gamma)
+    # fl = tf.multiply(alpha_weight, tf.multiply(weight, ce))
+    fl = tf.multiply(weight, ce)
+    reduced_fl = tf.reduce_max(fl, axis=1)
+    # reduced_fl = tf.reduce_sum(fl, axis=1)  # same as reduce_max
+    return reduced_fl
+
+
+def softmax_cross_entropy(
+        onehot_labels, logits, weights=1.0, scope=None,
+        loss_collection=ops.GraphKeys.LOSSES,
+        reduction=tf.losses.Reduction.SUM_BY_NONZERO_WEIGHTS):
+
+    with ops.name_scope(scope, "softmax_cross_entropy_loss",
+                        (logits, onehot_labels, weights)) as scope:
+        logits = ops.convert_to_tensor(logits)
+        onehot_labels = math_ops.cast(onehot_labels, logits.dtype)
+        logits.get_shape().assert_is_compatible_with(onehot_labels.get_shape())
+
+        onehot_labels = array_ops.stop_gradient(
+            onehot_labels, name="labels_stop_gradient")
+        # losses = nn.softmax_cross_entropy_with_logits_v2(
+        #     labels=onehot_labels, logits=logits, name="xentropy")
+        losses = focal_loss(
+            labels=onehot_labels, logits=logits, alpha=200, gamma=0)
+
+        return tf.losses.compute_weighted_loss(
+            losses, weights, scope, loss_collection, reduction=reduction)
 
 
 def add_softmax_cross_entropy_loss_for_each_scale(scales_to_logits,
@@ -83,11 +137,10 @@ def add_softmax_cross_entropy_loss_for_each_scale(scales_to_logits,
                     * not_ignore_mask
 
         # pdb.set_trace()
-        tf.losses.softmax_cross_entropy(
+        softmax_cross_entropy(
             one_hot_labels,
             tf.reshape(logits, shape=[-1, num_classes]),
             weights=weights,
-            label_smoothing=0,
             scope=loss_scope)
 
 
