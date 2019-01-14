@@ -60,7 +60,8 @@ then
         --train_logdir="${TRAIN_LOGDIR}" \
         --dataset_dir="${TT100K_DATASET}" \
         --base_learning_rate=0.0001 \
-        --tf_initial_checkpoint="${INIT_FOLDER}/deeplabv3_pascal_trainval/model.ckpt"
+        --tf_initial_checkpoint="${INIT_FOLDER}/deeplabv3_pascal_trainval/model.ckpt" \
+        --save_interval_secs=3600
 elif [ $FLAG == 2 ] 
 then 
     # Run evaluation. This performs eval over the full val split (1449 images) and
@@ -107,27 +108,7 @@ then
         --vis_logdir="${VIS_LOGDIR}" \
         --dataset_dir="${TT100K_DATASET}" \
         --max_number_of_iterations=1 \
-        --save_raw_predictions=false
-elif [ $FLAG == 4 ] 
-then
-    # Export the trained checkpoint.
-    CKPT_PATH="${TRAIN_LOGDIR}/model.ckpt-${NUM_ITERATIONS}"
-    EXPORT_PATH="${EXPORT_DIR}/frozen_inference_graph.pb"
-
-    python "${WORK_DIR}"/export_model.py \
-        --logtostderr \
-        --checkpoint_path="${CKPT_PATH}" \
-        --export_path="${EXPORT_PATH}" \
-        --model_variant="xception_65" \
-        --atrous_rates=6 \
-        --atrous_rates=12 \
-        --atrous_rates=18 \
-        --output_stride=16 \
-        --decoder_output_stride=4 \
-        --num_classes=21 \
-        --crop_size=513 \
-        --crop_size=513 \
-        --inference_scales=1.0
+        --save_raw_predictions=true
 else
     echo "error"
 fi

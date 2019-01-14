@@ -73,10 +73,10 @@ def softmax_cross_entropy(
 
         onehot_labels = array_ops.stop_gradient(
             onehot_labels, name="labels_stop_gradient")
-        # losses = nn.softmax_cross_entropy_with_logits_v2(
-        #     labels=onehot_labels, logits=logits, name="xentropy")
-        losses = focal_loss(
-            labels=onehot_labels, logits=logits, alpha=200, gamma=0)
+        losses = nn.softmax_cross_entropy_with_logits_v2(
+            labels=onehot_labels, logits=logits, name="xentropy")
+        # losses = focal_loss(
+        #     labels=onehot_labels, logits=logits, alpha=500, gamma=2)
 
         return tf.losses.compute_weighted_loss(
             losses, weights, scope, loss_collection, reduction=reduction)
@@ -132,12 +132,12 @@ def add_softmax_cross_entropy_loss_for_each_scale(scales_to_logits,
         one_hot_labels = slim.one_hot_encoding(
             scaled_labels, num_classes, on_value=1.0, off_value=0.0)
         # weighted class
-        class_weights = tf.constant([[1.0, 100.0]])
+        class_weights = tf.constant([[1.0, 500.0]])
         weights = tf.reduce_sum(class_weights * one_hot_labels, axis=1) \
                     * not_ignore_mask
 
         # pdb.set_trace()
-        softmax_cross_entropy(
+        tf.losses.softmax_cross_entropy(
             one_hot_labels,
             tf.reshape(logits, shape=[-1, num_classes]),
             weights=weights,
