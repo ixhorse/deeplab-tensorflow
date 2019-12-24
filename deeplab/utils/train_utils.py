@@ -36,9 +36,6 @@ def focal_loss(labels, logits, alpha=0.25, gamma=2):
     Notice: logits is probability after softmax
     gradient is d(Fl)/d(p_t) not d(Fl)/d(x) as described in paper
     d(Fl)/d(p_t) * [p_t(1-p_t)] = d(Fl)/d(x)
-    Lin, T.-Y., Goyal, P., Girshick, R., He, K., & Dollár, P. (2017).
-    Focal Loss for Dense Object Detection, 130(4), 485–491.
-    https://doi.org/10.1016/j.ajodo.2005.02.022
     :param labels: one hot labels, shape of [batch_size, num_cls]
     :param logits: model's output, shape of [batch_size, num_cls]
     :param alpha:
@@ -132,7 +129,7 @@ def add_softmax_cross_entropy_loss_for_each_scale(scales_to_logits,
         one_hot_labels = slim.one_hot_encoding(
             scaled_labels, num_classes, on_value=1.0, off_value=0.0)
         # weighted class
-        class_weights = tf.constant([[1.0, 500.0]])
+        class_weights = tf.constant([[1.0, 10.0]])
         weights = tf.reduce_sum(class_weights * one_hot_labels, axis=1) \
                     * not_ignore_mask
 

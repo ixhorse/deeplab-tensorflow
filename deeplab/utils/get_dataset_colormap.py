@@ -33,6 +33,7 @@ _ADE20K = 'ade20k'
 _CITYSCAPES = 'cityscapes'
 _MAPILLARY_VISTAS = 'mapillary_vistas'
 _PASCAL = 'pascal'
+_TT100K = 'tt100k'
 
 # Max number of entries in the colormap for each dataset.
 _DATASET_MAX_ENTRIES = {
@@ -40,8 +41,14 @@ _DATASET_MAX_ENTRIES = {
     _CITYSCAPES: 19,
     _MAPILLARY_VISTAS: 66,
     _PASCAL: 256,
+    _TT100K: 2,
 }
 
+def create_tt100k_label_colormap():
+    return np.asarray([
+        [0, 0, 0],
+        [255, 255, 255]
+        ])
 
 def create_ade20k_label_colormap():
     """Creates a label colormap used in ADE20K segmentation benchmark.
@@ -374,6 +381,8 @@ def create_label_colormap(dataset=_PASCAL):
         return create_mapillary_vistas_label_colormap()
     elif dataset == _PASCAL:
         return create_pascal_label_colormap()
+    elif dataset == _TT100K:
+        return create_tt100k_label_colormap()
     else:
         raise ValueError('Unsupported dataset.')
 

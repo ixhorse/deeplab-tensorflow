@@ -22,7 +22,7 @@ DATASET_DIR="datasets"
 TT100K_FOLDER="tt100k"
 EXP_FOLDER="exp"
 INIT_FOLDER="${WORK_DIR}/${DATASET_DIR}/${TT100K_FOLDER}/init_models"
-TRAIN_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${TT100K_FOLDER}/${EXP_FOLDER}/train"
+TRAIN_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${TT100K_FOLDER}/${EXP_FOLDER}/train_200"
 EVAL_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${TT100K_FOLDER}/${EXP_FOLDER}/eval"
 VIS_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${TT100K_FOLDER}/${EXP_FOLDER}/vis"
 EXPORT_DIR="${WORK_DIR}/${DATASET_DIR}/${TT100K_FOLDER}/${EXP_FOLDER}/export"
@@ -33,7 +33,7 @@ mkdir -p "${VIS_LOGDIR}"
 mkdir -p "${EXPORT_DIR}"
 
 TT100K_DATASET="${WORK_DIR}/${DATASET_DIR}/${TT100K_FOLDER}/tfrecord"
-NUM_ITERATIONS=10000
+NUM_ITERATIONS=30000
 
 echo $FLAG
 if [ 1 == $FLAG ] 
@@ -61,7 +61,7 @@ then
         --dataset_dir="${TT100K_DATASET}" \
         --base_learning_rate=0.0001 \
         --tf_initial_checkpoint="${INIT_FOLDER}/deeplabv3_pascal_trainval/model.ckpt" \
-        --save_interval_secs=3600
+        --save_interval_secs=600
 elif [ $FLAG == 2 ] 
 then 
     # Run evaluation. This performs eval over the full val split (1449 images) and
@@ -90,7 +90,7 @@ elif [ $FLAG == 3 ]
 then
     # Visualize the results.
     echo "====vis===="
-    python "${WORK_DIR}"/vis.py \
+    CUDA_VISIBLE_DEVICES=1 python "${WORK_DIR}"/vis.py \
         --logtostderr \
         --vis_split="val" \
         --model_variant="xception_65" \
@@ -108,6 +108,7 @@ then
         --vis_logdir="${VIS_LOGDIR}" \
         --dataset_dir="${TT100K_DATASET}" \
         --max_number_of_iterations=1 \
+        --colormap_type=tt100k \
         --save_raw_predictions=true
 else
     echo "error"

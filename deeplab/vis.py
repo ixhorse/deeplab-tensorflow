@@ -81,7 +81,7 @@ flags.DEFINE_string('vis_split', 'val',
 
 flags.DEFINE_string('dataset_dir', None, 'Where the dataset reside.')
 
-flags.DEFINE_enum('colormap_type', 'pascal', ['pascal', 'cityscapes'],
+flags.DEFINE_enum('colormap_type', 'pascal', ['pascal', 'cityscapes', 'tt100k'],
                   'Visualization colormap type.')
 
 flags.DEFINE_boolean('save_raw_predictions', False,
@@ -173,7 +173,6 @@ def _process_batch(sess, original_images, semantic_predictions, image_names,
                 crop_semantic_prediction, raw_save_dir, image_filename,
                 add_colormap=False)
         else:
-            pdb.set_trace()
             # Save image.
             save_annotation.save_annotation(
                 original_image, save_dir, _IMAGE_FORMAT % (image_id_offset + i),
